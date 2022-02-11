@@ -3,87 +3,421 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome to Firebase Hosting</title>
+    <title>Un:Demo-Encryptor</title>
 
     <!-- update the version number as needed -->
-    <script defer src="/__/firebase/9.6.6/firebase-app-compat.js"></script>
+    <script defer src="/__/firebase/8.4.2/firebase-app.js"></script>
     <!-- include only the Firebase features as you need -->
-    <script defer src="/__/firebase/9.6.6/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/9.6.6/firebase-database-compat.js"></script>
-    <script defer src="/__/firebase/9.6.6/firebase-firestore-compat.js"></script>
-    <script defer src="/__/firebase/9.6.6/firebase-functions-compat.js"></script>
-    <script defer src="/__/firebase/9.6.6/firebase-messaging-compat.js"></script>
-    <script defer src="/__/firebase/9.6.6/firebase-storage-compat.js"></script>
-    <script defer src="/__/firebase/9.6.6/firebase-analytics-compat.js"></script>
-    <script defer src="/__/firebase/9.6.6/firebase-remote-config-compat.js"></script>
-    <script defer src="/__/firebase/9.6.6/firebase-performance-compat.js"></script>
+    <script defer src="/__/firebase/8.4.2/firebase-auth.js"></script>
+    <script defer src="/__/firebase/8.4.2/firebase-database.js"></script>
+    <script defer src="/__/firebase/8.4.2/firebase-firestore.js"></script>
+    <script defer src="/__/firebase/8.4.2/firebase-functions.js"></script>
+    <script defer src="/__/firebase/8.4.2/firebase-messaging.js"></script>
+    <script defer src="/__/firebase/8.4.2/firebase-storage.js"></script>
+    <script defer src="/__/firebase/8.4.2/firebase-analytics.js"></script>
+    <script defer src="/__/firebase/8.4.2/firebase-remote-config.js"></script>
+    <script defer src="/__/firebase/8.4.2/firebase-performance.js"></script>
     <!-- 
       initialize the SDK after all desired features are loaded, set useEmulator to false
       to avoid connecting the SDK to running emulators.
     -->
     <script defer src="/__/firebase/init.js?useEmulator=true"></script>
-
-    <style media="screen">
-      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
-      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
-      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
-      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
-      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
-      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
-      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
-      @media (max-width: 600px) {
-        body, #message { margin-top: 0; background: white; box-shadow: none; }
-        body { border-top: 16px solid #ffa100; }
-      }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    
   </head>
   <body>
-    <div id="message">
-      <h2>Welcome</h2>
-      <h1>Firebase Hosting Setup Complete</h1>
-      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
-      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
-    </div>
-    <p id="load">Firebase SDK Loading&hellip;</p>
-
+    <div id="app">
+      <table>
+        <tr>
+          <td VALIGN=TOP>
+            <div id="model">
+              <div class="model">
+                <p><strong>Instructions:</strong> To begin, first import or generate a key by creating at least 3 spatial points in the list below by filling them in manually or using the I'm Feelin Lucky button to generate a number of random points.</p>
+                      <p>Import Key: Allows you to load a key.json file from a previous session</p>
+                      <p>Export Key: Allows you to export the current key as a key.json file. Remember to keep this somewhere safe because you'll need it to decrypt your file.</p>
+                      <p>Encrypt/Decrypt File: Opens the file picker to select a file to encrypt/decrypt. Once a file is chosen, it will be loaded into your browser and modified by the script. You will then be prompted to save the modified file.</p>
+                      <p>PLEASE NOTE: This application runs solely in the browser and no data will be uploaded or transferred by this website.</p>
+                <table>
+                  <tr>
+                    <td colspan=2 ><button onclick="v.getLucky()">I'm Feelin Lucky</button> x <input type="number" id="numG" v-model="numG" value=1 style="width: 3em"></td>
+                    <td><button onclick="v.importKey()">Import Key</button>
+                      <button onclick="v.exportJSON()">Export Key</button>
+                    </td>
+                    <td><button onclick="v.encryptFile()">Encrypt File</button>
+                      <button onclick="v.decryptFile()">Decrypt File</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>#</td>
+                    <td>X</td>
+                    <td>Y</td>
+                    <td>Z</td>
+                  
+                  <tr>
+                    <td><button onclick="v.addPoint()">+</button></td>
+                    <td><input type="number" id="X" v-model="inX" value=0></td>
+                    <td><input type="number" id="Y" v-model="inY" value=0></td>
+                    <td><input type="number" id="Z" v-model="inZ" value=0></td>
+                  </tr>
+                </tr>
+                <tr v-for="(item, index) of key.poly">
+                  <td>{{ index + 1 }}</td>
+                  <td><input type="number" v-model="key.poly[index][0]"></td>
+                  <td><input type="number" v-model="key.poly[index][1]"></td>
+                  <td><input type="number" v-model="key.poly[index][2]"></td>
+                </tr>
+                </table>
+              </div>
+            </div>
+          </td>
+         
+        </tr>
+      </table>
+    
+  </div>
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const loadEl = document.querySelector('#load');
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-        // // The Firebase SDK is initialized and available here!
-        //
-        // firebase.auth().onAuthStateChanged(user => { });
-        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
-        // firebase.firestore().doc('/foo/bar').get().then(() => { });
-        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
-        // firebase.messaging().requestPermission().then(() => { });
-        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
-        // firebase.analytics(); // call to activate
-        // firebase.analytics().logEvent('tutorial_completed');
-        // firebase.performance(); // call to activate
-        //
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-
-        try {
-          let app = firebase.app();
-          let features = [
-            'auth', 
-            'database', 
-            'firestore',
-            'functions',
-            'messaging', 
-            'storage', 
-            'analytics', 
-            'remoteConfig',
-            'performance',
-          ].filter(feature => typeof app[feature] === 'function');
-          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
-        } catch (e) {
-          console.error(e);
-          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
+      var h = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
+      var input = document.createElement('input');
+          function promptFile(contentType, multiple) {
+          var input = document.createElement("input");
+          input.type = "file";
+          input.multiple = multiple;
+          input.accept = contentType;
+          return new Promise(function(resolve) {
+            document.activeElement.onfocus = function() {
+              document.activeElement.onfocus = null;
+              setTimeout(resolve, 500);
+            };
+            input.onchange = function() {
+              var files = Array.from(input.files);
+              if (multiple)
+                return resolve(files);
+              resolve(files[0]);
+            };
+            input.click();
+          });
         }
-      });
+        function ArrayBufferToHex(buffer) {
+          return [...new Uint8Array(buffer)]
+                .map(x => x.toString(16).padStart(2, '0'))
+                .join('')
+        }
+        var v = new Vue({
+          el: '#app',
+          data: {
+            key: {poly: []},
+            inX: 0,
+            inY: 0,
+            inZ: 0,
+            numG: 1,
+            rawData: undefined,
+            shiftedBuffer: ""
+          },
+          computed: {
+          },
+          methods: {
+            encryptFile: async function() {
+              this.rawData = undefined
+              this.shiftedBuffer = ""
+              promptFile().then(function(file) {
+
+                var filename = file.name.split(/(\\|\/)/g).pop()
+                var reader = new FileReader()
+                reader.onload = function (e) {
+                  var content = e.target.result;
+                  v.rawData = ArrayBufferToHex(content)
+
+                }
+                reader.onloadend = async function () {
+                  console.log("in", v.rawData)
+                  await v.obscure()
+                  console.log("out", v.shiftedBuffer)
+                  v.exportFile(filename)
+                }
+                reader.readAsArrayBuffer(file)
+              })
+            },
+            decryptFile: async function() {
+              this.rawData = undefined
+              this.shiftedBuffer = ""
+              promptFile().then(function(file) {
+
+                var filename = file.name.split(/(\\|\/)/g).pop()
+                var reader = new FileReader()
+                reader.onload = function (e) {
+                  var content = e.target.result;
+                  v.rawData = ArrayBufferToHex(content)
+
+                }
+                reader.onloadend = async function () {
+                  console.log("in", v.rawData)
+                  await v.obtain()
+                  console.log("out", v.shiftedBuffer)
+                  v.exportFile(filename)
+                }
+                reader.readAsArrayBuffer(file)
+              })
+            },
+            importKey: function() {
+              promptFile().then(function(file) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                  var content = e.target.result;
+                  v.key = JSON.parse(content)
+                }
+                reader.readAsText(file)
+              });
+            },
+            exportJSON: function() {
+              var file = new Blob([JSON.stringify(this.key)], {type: "text/plain;charset=utf-8"});
+              if (window.navigator.msSaveOrOpenBlob) // IE10+
+                  window.navigator.msSaveOrOpenBlob(file, "key.json");
+              else { // Others
+                  var a = document.createElement("a"),
+                          url = URL.createObjectURL(file);
+                  a.href = url;
+                  a.download = "key.json";
+                  document.body.appendChild(a);
+                  a.click();
+                  setTimeout(function() {
+                      document.body.removeChild(a);
+                      window.URL.revokeObjectURL(url);  
+                  }, 0); 
+              }
+            },
+            exportFile: function(filename) {
+              var byteArray = new Uint8Array(this.shiftedBuffer.length/2);
+              for (var x = 0; x < byteArray.length; x++){
+                byteArray[x] = parseInt(this.shiftedBuffer.substr(x*2,2), 16);
+              }
+              var file = new Blob([byteArray], {type: "application/octet-stream"})
+              if (window.navigator.msSaveOrOpenBlob) // IE10+
+                  window.navigator.msSaveOrOpenBlob(file, filename);
+              else { // Others
+                  var a = document.createElement("a"),
+                          url = URL.createObjectURL(file);
+                  a.href = url;
+                  a.download = filename;
+                  document.body.appendChild(a);
+                  a.click();
+                  setTimeout(function() {
+                      document.body.removeChild(a);
+                      window.URL.revokeObjectURL(url);  
+                  }, 0); 
+              }
+            },
+            showPath: function(n) {
+              var point = -1
+                var shift = 0
+                var gap = 0
+                var t = []
+                for (var i = 0; i < n; i++) {
+                  point = ((point + 1) % this.key.poly.length)
+                  var point2 = ((point + shift + 1) % this.key.poly.length)
+                  var point3 = ((point + shift + gap + 2) % this.key.poly.length)
+                  console.log(point, point2, point3)
+                  if (point == (this.key.poly.length - 1)) {
+                      if (shift == (this.key.poly.length - 1)) {
+                          gap = ((gap + 1) % this.key.poly.length)
+                      }
+                      shift = ((shift + 1) % this.key.poly.length)
+                  }
+                  
+                }
+              var p1 = this.key.poly[point]
+              var p2 = this.key.poly[point2]
+              var p3 = this.key.poly[point3]
+            },
+            rollFloat: function() {
+              var r1 = parseInt(String(Math.random())[2]) 
+              var r2 = parseInt(String(Math.random())[2 + (r1 % 3)]) * r1
+              var r3 = parseFloat(String(Math.random() * r2))
+              var d = String(r3).indexOf('.') + 2
+              var x = String(r3).substring(0, d + (r1 % 3))
+              //console.log(r1, r2, r3, d, x)
+              if (parseFloat(x) > 0) {
+                return x
+              } else {
+                return this.rollFloat()
+              }
+            },
+            getLucky: function() {
+              var ng = Math.round(Number(this.numG))
+              if (ng > 1) {
+                for (var a = 0; a < ng; a++) {
+                  this.key.poly.push([this.rollFloat(), this.rollFloat(), this.rollFloat()])
+                }
+              } else {
+                this.key.poly.push([this.rollFloat(), this.rollFloat(), this.rollFloat()])
+              }
+            },
+            addPoint: function() {
+              this.key.poly.push([this.inX, this.inY, this.inZ])
+            },
+            triangulate: async function(index, i2, i3) {
+              var a = 0
+              var b = 0
+              var c = 0
+              for (var i = 0; i < this.key.poly[index].length; i++) {
+                  a += Math.pow((parseFloat(this.key.poly[i2][i]) - parseFloat(this.key.poly[index][i])), 2)
+                  b += Math.pow((parseFloat(this.key.poly[index][i]) - parseFloat(this.key.poly[i3][i])), 2)
+                  c += Math.pow((parseFloat(this.key.poly[i3][i]) - parseFloat(this.key.poly[i2][i])), 2)
+                }
+              a = Math.sqrt(a)
+              b = Math.sqrt(b)
+              c = Math.sqrt(c)
+              
+
+              var cosC = (Math.pow(a, 2) + Math.pow(b, 2) - Math.pow(c, 2)) / (2 * a * b)
+              var pi = Math.PI
+              var deg = Math.acos(cosC) * (180/pi)
+
+              return deg
+            },
+            obscure: async function() { 
+              var point = 0
+              var shift = 0
+              var gap = 0
+              for (var i = 0; i < this.rawData.length; i++) {
+                  var point2 = ((point + shift + 1) % this.key.poly.length)
+                  var point3 = ((point + shift + gap + 2) % this.key.poly.length)
+
+                  //console.log(point, point2, point3, this.key.poly.length)
+                  var angle = await this.triangulate(point, point2, point3)
+                  var d1 = parseFloat(this.key.poly[point][0])
+                  var d2 = parseFloat(this.key.poly[point][1])
+                  var d3 = parseFloat(this.key.poly[point][2])
+                  var k = 0
+                  //console.log("before", this.rawData[i])
+                  if (angle < 15) {
+                      var e = Math.floor((d1 + d2 + d3)) % 15
+                      //console.log(e)
+                      k = (h.indexOf(this.rawData[i]) + e)
+                      //console.log(k)
+                  } else if (angle < 30) {
+                      var e = Math.floor((d1 + d2 - d3)) % 15
+                      //console.log(e)
+                      k = (h.indexOf(this.rawData[i]) + e)
+                      //console.log(k)
+                  } else if (angle < 45) {
+                      var e = Math.floor((d1 - d2 - d3)) % 15
+                      //console.log(e)
+                      k = (h.indexOf(this.rawData[i]) + e)
+                      //console.log(k)
+                  } else if (angle < 60) {
+                      var e = Math.floor((d1 - d2 + d3)) % 15
+                      //console.log(e)
+                      k = (h.indexOf(this.rawData[i]) + e)
+                      //console.log(k)
+                  } else if (angle < 75) {
+                      var e = Math.ceil((d1 + d2 + d3)) % 15
+                      //console.log(e)
+                      k = (h.indexOf(this.rawData[i]) - e)
+                      //console.log(k)
+                  } else if (angle < 90) {
+                      var e = Math.ceil((d1 + d2 - d3)) % 15
+                      //console.log(e)
+                      k = (h.indexOf(this.rawData[i]) - e)
+                      //console.log(k)
+                  } else if (angle < 105) {
+                      var e = Math.ceil((d1 - d2 - d3)) % 15
+                      //console.log(e)
+                      k = (h.indexOf(this.rawData[i]) - e)
+                      //console.log(k)
+                  } else {
+                      var e = Math.ceil((d1 - d2 + d3)) % 15
+                      //console.log(e)
+                      var k = (h.indexOf(this.rawData[i]) - e)
+                      //console.log(k)
+                  }
+                  k = k%16
+                  if (k < 0) {
+                    k += 16
+                  }
+                  this.shiftedBuffer += h[k]
+                  if (point == (this.key.poly.length - 1)) {
+                      if (shift == (this.key.poly.length - 1)) {
+                          gap = ((gap + 1) % this.key.poly.length)
+                      }
+                      shift = ((shift + 1) % this.key.poly.length)
+                  }
+                  point = ((point + 1) % this.key.poly.length)
+              }
+              return true
+            },   
+            obtain: async function() {
+              var point = 0
+              var shift = 0
+              var gap = 0
+              for (var i = 0; i < this.rawData.length; i++) {
+                  var point2 = ((point + shift + 1) % this.key.poly.length)
+                  var point3 = ((point + shift + gap + 2) % this.key.poly.length)
+
+                  //console.log(point, point2, point3, this.key.poly.length)
+                  var angle = await this.triangulate(point, point2, point3)
+                  var d1 = parseFloat(this.key.poly[point][0])
+                  var d2 = parseFloat(this.key.poly[point][1])
+                  var d3 = parseFloat(this.key.poly[point][2])
+                  var k = 0
+                  //console.log("before", this.rawData[i])
+                  if (angle < 15) {
+                      var e = Math.floor((d1 + d2 + d3)) % 15
+                      //console.log(e)
+                      k = (h.indexOf(this.rawData[i]) - e)
+                      //console.log(k)
+                  } else if (angle < 30) {
+                      var e = Math.floor((d1 + d2 - d3)) % 15
+                      //console.log(e)
+                      k = (h.indexOf(this.rawData[i]) - e)
+                      //console.log(k)
+                  } else if (angle < 45) {
+                      var e = Math.floor((d1 - d2 - d3)) % 15
+                      //console.log(e)
+                      k = (h.indexOf(this.rawData[i]) - e)
+                      //console.log(k)
+                  } else if (angle < 60) {
+                      var e = Math.floor((d1 - d2 + d3)) % 15
+                      //console.log(e)
+                      k = (h.indexOf(this.rawData[i]) - e)
+                      //console.log(k)
+                  } else if (angle < 75) {
+                      var e = Math.ceil((d1 + d2 + d3)) % 15
+                      //console.log(e)
+                      k = (h.indexOf(this.rawData[i]) + e)
+                      //console.log(k)
+                  } else if (angle < 90) {
+                      var e = Math.ceil((d1 + d2 - d3)) % 15
+                      //console.log(e)
+                      k = (h.indexOf(this.rawData[i]) + e)
+                      //console.log(k)
+                  } else if (angle < 105) {
+                      var e = Math.ceil((d1 - d2 - d3)) % 15
+                      //console.log(e)
+                      k = (h.indexOf(this.rawData[i]) + e)
+                      //console.log(k)
+                  } else {
+                      var e = Math.ceil((d1 - d2 + d3)) % 15
+                      //console.log(e)
+                      var k = (h.indexOf(this.rawData[i]) + e)
+                      //console.log(k)
+                  }
+                  k = k%16
+                  if (k < 0) {
+                    k += 16
+                  }
+                  this.shiftedBuffer += h[k]
+                  if (point == (this.key.poly.length - 1)) {
+                      if (shift == (this.key.poly.length - 1)) {
+                          gap = ((gap + 1) % this.key.poly.length)
+                      }
+                      shift = ((shift + 1) % this.key.poly.length)
+                  }
+                  point = ((point + 1) % this.key.poly.length)
+              }
+              return true
+          }
+          }
+        })
     </script>
   </body>
 </html>
