@@ -102,7 +102,7 @@
           }
           offset += 2;
         }
-        console.log(smallestX, smallestY, smallestZ)
+        //console.log(smallestX, smallestY, smallestZ)
         smallestX = Math.abs(smallestX)
         smallestY = Math.abs(smallestY)
         smallestZ = Math.abs(smallestZ)
@@ -111,7 +111,7 @@
           tempkey[i][1] += smallestY
           tempkey[i][2] += smallestZ
         }
-        console.log(tempkey)
+        //console.log(tempkey)
         v.key.poly = tempkey
       }
       var h = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
@@ -167,9 +167,9 @@
 
                 }
                 reader.onloadend = async function () {
-                  console.log("in", v.rawData)
+                  //console.log("in", v.rawData)
                   await v.obscure()
-                  console.log("out", v.shiftedBuffer)
+                  //console.log("out", v.shiftedBuffer)
                   v.exportFile(filename)
                 }
                 reader.readAsArrayBuffer(file)
@@ -254,28 +254,6 @@
                       window.URL.revokeObjectURL(url);  
                   }, 0); 
               }
-            },
-            showPath: function(n) {
-              var point = -1
-                var shift = 0
-                var gap = 0
-                var t = []
-                for (var i = 0; i < n; i++) {
-                  point = ((point + 1) % this.key.poly.length)
-                  var point2 = ((point + shift + 1) % this.key.poly.length)
-                  var point3 = ((point + shift + gap + 2) % this.key.poly.length)
-                  console.log(point, point2, point3)
-                  if (point == (this.key.poly.length - 1)) {
-                      if (shift == (this.key.poly.length - 1)) {
-                          gap = ((gap + 1) % this.key.poly.length)
-                      }
-                      shift = ((shift + 1) % this.key.poly.length)
-                  }
-                  
-                }
-              var p1 = this.key.poly[point]
-              var p2 = this.key.poly[point2]
-              var p3 = this.key.poly[point3]
             },
             rollFloat: function() {
               var r1 = parseInt(String(Math.random())[2]) 
