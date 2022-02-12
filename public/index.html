@@ -33,7 +33,7 @@
             <div id="model">
               <div class="model">
                 <p><strong>Instructions:</strong> To begin, first import or generate a key by creating at least 3 spatial points in the list below by filling them in manually or using the I'm Feelin Lucky button to generate a number of random points.</p>
-                      <p>Import Key: Allows you to load a key.json file from a previous session. This now also accepts .stl files</p>
+                      <p>Import Key: Allows you to load a key.json file from a previous session. This now also accepts .stl files though load times will vary based on stl size. To conserve memory only the first 500 points of an stl will be displayed, but all points in the model will be used.</p>
                       <p>Export Key: Allows you to export the current key as a key.json file. Remember to keep this somewhere safe because you'll need it to decrypt your file.</p>
                       <p>Encrypt/Decrypt File: Opens the file picker to select a file to encrypt/decrypt. Once a file is chosen, it will be loaded into your browser and modified by the script. You will then be prompted to save the modified file.</p>
                       <p>PLEASE NOTE: This application runs solely in the browser and no data will be uploaded or transferred by this website.</p>
@@ -52,20 +52,20 @@
                     <td>X</td>
                     <td>Y</td>
                     <td>Z</td>
-                  
+                  </tr>
                   <tr>
                     <td><button onclick="v.addPoint()">+</button></td>
                     <td><input type="number" id="X" v-model="inX" value=0></td>
                     <td><input type="number" id="Y" v-model="inY" value=0></td>
                     <td><input type="number" id="Z" v-model="inZ" value=0></td>
                   </tr>
-                </tr>
-                <tr v-for="(item, index) of key.poly">
-                  <td>{{ index + 1 }}</td>
-                  <td><input type="number" v-model="key.poly[index][0]"></td>
-                  <td><input type="number" v-model="key.poly[index][1]"></td>
-                  <td><input type="number" v-model="key.poly[index][2]"></td>
-                </tr>
+                
+                  <tr v-for="(item, index) of key.poly.slice(0, 500)">
+                      <td>{{ index + 1 }}</td>
+                      <td><input type="number" v-model="key.poly[index][0]"></td>
+                      <td><input type="number" v-model="key.poly[index][1]"></td>
+                      <td><input type="number" v-model="key.poly[index][2]"></td>
+                  </tr>
                 </table>
               </div>
             </div>
@@ -76,44 +76,6 @@
     
   </div>
     <script>
-      function parseSTL(stl) {
-        v.key.poly = []
-        var tempkey = []
-        var dv = new DataView(stl, 80); // 80 == unused header
-        var isLittleEndian = true;
-
-        // Read a 32 bit unsigned integer
-        var triangles = dv.getUint32(0, isLittleEndian);
-
-        var offset = 4;
-        var smallestX = 0
-        var smallestY = 0
-        var smallestZ = 0
-        for (var i = 0; i < triangles; i++) {
-          offset += 12;
-
-          for (var j = 0; j < 3; j++) {
-            var [x, y, z] = [dv.getFloat32(offset, isLittleEndian),dv.getFloat32(offset+4, isLittleEndian),dv.getFloat32(offset+8, isLittleEndian)]
-            if (x < smallestX) smallestX = x
-            if (y < smallestY) smallestY = y
-            if (z < smallestZ) smallestZ = z
-            tempkey.push([x, y, z])
-            offset += 12
-          }
-          offset += 2;
-        }
-        //console.log(smallestX, smallestY, smallestZ)
-        smallestX = Math.abs(smallestX)
-        smallestY = Math.abs(smallestY)
-        smallestZ = Math.abs(smallestZ)
-        for (var i = 0; i < tempkey.length; i++) {
-          tempkey[i][0] += smallestX
-          tempkey[i][1] += smallestY
-          tempkey[i][2] += smallestZ
-        }
-        //console.log(tempkey)
-        v.key.poly = tempkey
-      }
       var h = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
       var input = document.createElement('input');
           function promptFile(contentType, multiple) {
@@ -154,6 +116,43 @@
           computed: {
           },
           methods: {
+            parseSTL: function(stl) {
+              this.key.poly = []
+              var dv = new DataView(stl, 80); // 80 == unused header
+              var isLittleEndian = true;
+
+              // Read a 32 bit unsigned integer
+              var triangles = dv.getUint32(0, isLittleEndian);
+
+              var offset = 4;
+              var smallestX = 0
+              var smallestY = 0
+              var smallestZ = 0
+              for (var i = 0; i < triangles; i++) {
+                offset += 12;
+
+                for (var j = 0; j < 3; j++) {
+                  var [x, y, z] = [dv.getFloat32(offset, isLittleEndian),dv.getFloat32(offset+4, isLittleEndian),dv.getFloat32(offset+8, isLittleEndian)]
+                  if (x < smallestX) smallestX = x
+                  if (y < smallestY) smallestY = y
+                  if (z < smallestZ) smallestZ = z
+                  this.key.poly.push([x, y, z])
+                  offset += 12
+                }
+                offset += 2;
+              }
+              //console.log(smallestX, smallestY, smallestZ)
+              smallestX = Math.abs(smallestX)
+              smallestY = Math.abs(smallestY)
+              smallestZ = Math.abs(smallestZ)
+              if (smallestX > 0 || smallestY > 0 || smallestZ > 0) {
+                for (var i = 0; i < v.key.poly.length; i++) {
+                  this.key.poly[i][0] += smallestX
+                  this.key.poly[i][1] += smallestY
+                  this.key.poly[i][2] += smallestZ
+                }
+              }
+            },
             encryptFile: async function() {
               this.rawData = undefined
               this.shiftedBuffer = ""
@@ -204,7 +203,7 @@
                   var reader = new FileReader();
                   reader.onload = function (e) {
                     var content = e.target.result;
-                    parseSTL(content)
+                    v.parseSTL(content)
                   }
                   reader.readAsArrayBuffer(file)
                 } else if (ex == "son") {
