@@ -33,7 +33,7 @@
             <div id="model">
               <div class="model">
                 <p><strong>Instructions:</strong> To begin, first import or generate a key by creating at least 3 spatial points in the list below by filling them in manually or using the I'm Feelin Lucky button to generate a number of random points.</p>
-                      <p>Import Key: Allows you to load a key.json file from a previous session</p>
+                      <p>Import Key: Allows you to load a key.json file from a previous session. This now also accepts .stl files</p>
                       <p>Export Key: Allows you to export the current key as a key.json file. Remember to keep this somewhere safe because you'll need it to decrypt your file.</p>
                       <p>Encrypt/Decrypt File: Opens the file picker to select a file to encrypt/decrypt. Once a file is chosen, it will be loaded into your browser and modified by the script. You will then be prompted to save the modified file.</p>
                       <p>PLEASE NOTE: This application runs solely in the browser and no data will be uploaded or transferred by this website.</p>
@@ -76,6 +76,44 @@
     
   </div>
     <script>
+      function parseSTL(stl) {
+        v.key.poly = []
+        var tempkey = []
+        var dv = new DataView(stl, 80); // 80 == unused header
+        var isLittleEndian = true;
+
+        // Read a 32 bit unsigned integer
+        var triangles = dv.getUint32(0, isLittleEndian);
+
+        var offset = 4;
+        var smallestX = 0
+        var smallestY = 0
+        var smallestZ = 0
+        for (var i = 0; i < triangles; i++) {
+          offset += 12;
+
+          for (var j = 0; j < 3; j++) {
+            var [x, y, z] = [dv.getFloat32(offset, isLittleEndian),dv.getFloat32(offset+4, isLittleEndian),dv.getFloat32(offset+8, isLittleEndian)]
+            if (x < smallestX) smallestX = x
+            if (y < smallestY) smallestY = y
+            if (z < smallestZ) smallestZ = z
+            tempkey.push([x, y, z])
+            offset += 12
+          }
+          offset += 2;
+        }
+        console.log(smallestX, smallestY, smallestZ)
+        smallestX = Math.abs(smallestX)
+        smallestY = Math.abs(smallestY)
+        smallestZ = Math.abs(smallestZ)
+        for (var i = 0; i < tempkey.length; i++) {
+          tempkey[i][0] += smallestX
+          tempkey[i][1] += smallestY
+          tempkey[i][2] += smallestZ
+        }
+        console.log(tempkey)
+        v.key.poly = tempkey
+      }
       var h = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
       var input = document.createElement('input');
           function promptFile(contentType, multiple) {
@@ -160,12 +198,23 @@
             },
             importKey: function() {
               promptFile().then(function(file) {
-                var reader = new FileReader();
-                reader.onload = function (e) {
-                  var content = e.target.result;
-                  v.key = JSON.parse(content)
+                var filename = file.name.split(/(\\|\/)/g).pop()
+                var ex = filename.substr(filename.length - 4).toLowerCase()
+                if (ex == ".stl") {
+                  var reader = new FileReader();
+                  reader.onload = function (e) {
+                    var content = e.target.result;
+                    parseSTL(content)
+                  }
+                  reader.readAsArrayBuffer(file)
+                } else if (ex == "son") {
+                  var reader = new FileReader();
+                  reader.onload = function (e) {
+                    var content = e.target.result;
+                    v.key = JSON.parse(content)
+                  }
+                  reader.readAsText(file)
                 }
-                reader.readAsText(file)
               });
             },
             exportJSON: function() {
